@@ -50,7 +50,7 @@ class CopyManga : ConfigurableSource, HttpSource() {
 
     override fun searchMangaRequest(page: Int, query: String, filters: FilterList): Request {
         // when perform html search, sort by popular
-        var apiUrlString = "$baseUrl/api/kb/web/search/count?format=json&limit=$searchPageSize&offset=${(page - 1) * searchPageSize}&platform=2&q=$query"
+        var apiUrlString = "$baseUrl/api/kb/web/search/comics?limit=$searchPageSize&offset=${(page - 1) * searchPageSize}&platform=2&q=$query&q_type="
         var htmlUrlString = "$baseUrl/comics?offset=${(page - 1) * popularLatestPageSize}&limit=$popularLatestPageSize"
         var requestUrlString: String
 
@@ -175,7 +175,7 @@ class CopyManga : ConfigurableSource, HttpSource() {
 
     override fun headersBuilder() = super.headersBuilder()
         .add("Referer", baseUrl)
-        .add("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36 Tachiyomi/1.0")
+        .add("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36")
 
     // Unused, we can get image urls directly from the chapter page
     override fun imageUrlParse(response: Response) =
@@ -288,7 +288,7 @@ class CopyManga : ConfigurableSource, HttpSource() {
         val body = response.body()!!.string()
         // results > comic > list []
         val res = JSONObject(body)
-        val comicArray = res.optJSONObject("results")?.optJSONObject("comic")?.optJSONArray("list")
+        val comicArray = res.optJSONObject("results")?.optJSONArray("list")
         if (comicArray == null) {
             return MangasPage(listOf(), false)
         }
