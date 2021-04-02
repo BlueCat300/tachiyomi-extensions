@@ -25,7 +25,7 @@ class MadaraGenerator : ThemeSourceGenerator {
             SingleLang("ArazNovel", "https://www.araznovel.com", "tr"),
             SingleLang("Argos Scan", "https://argosscan.com", "pt-BR"),
             SingleLang("Asgard Team", "https://www.asgard1team.com", "ar"),
-            SingleLang("Astral Library", "https://www.astrallibrary.net", "en"),
+            SingleLang("Astral Library", "https://www.astrallibrary.net", "en", overrideVersionCode = 1),
             SingleLang("Atikrost", "https://atikrost.com", "tr"),
             SingleLang("ATM-Subs", "https://atm-subs.fr", "fr", className = "ATMSubs"),
             SingleLang("AYATOON", "https://ayatoon.com", "tr"),
@@ -192,7 +192,7 @@ class MadaraGenerator : ThemeSourceGenerator {
             SingleLang("Random Translations", "https://randomtranslations.com", "en"),
             SingleLang("RawDEX", "https://rawdex.net", "ko", isNsfw = true),
             SingleLang("Raw Mangas", "https://rawmangas.net", "ja", isNsfw = true, overrideVersionCode = 1),
-            SingleLang("ReadManhua", "https://readmanhua.net", "en", overrideVersionCode = 1),
+            SingleLang("ReadManhua", "https://readmanhua.net", "en", overrideVersionCode = 2),
             SingleLang("Renascence Scans (Renascans)", "https://new.renascans.com", "en", className = "RenaScans"),
             SingleLang("Rüya Manga", "https://www.ruyamanga.com", "tr", className = "RuyaManga"),
             SingleLang("S2Manga", "https://s2manga.com", "en"),
@@ -245,6 +245,10 @@ class MadaraGenerator : ThemeSourceGenerator {
             MultiLang("Leviatan Scans", "https://leviatanscans.com", listOf("en", "es"),
                 className = "LeviatanScansFactory", overrideVersionCode = 3),
             SingleLang("Manga1st", "https://manga1st.com", "en"),
+            SingleLang("Manga1st.online", "https://manga1st.online", "en", className = "MangaFirstOnline"),
+            SingleLang("Imperfect Comics", "https://imperfectcomic.com", "en"),
+            SingleLang("Ookamii Manga", "https://manga.ookamii.xyz/", "en"),
+            SingleLang("Mortals Groove", "https://mortalsgroove.com", "en")
     )
 
     companion object {
