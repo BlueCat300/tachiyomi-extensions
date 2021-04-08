@@ -1,11 +1,10 @@
-package eu.kanade.tachiyomi.extension.pt.mangasproject
+package eu.kanade.tachiyomi.multisrc.mangasproject
 
 import com.github.salomonbrys.kotson.array
 import com.github.salomonbrys.kotson.obj
 import com.github.salomonbrys.kotson.string
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
-import eu.kanade.tachiyomi.lib.ratelimit.RateLimitInterceptor
 import eu.kanade.tachiyomi.network.GET
 import eu.kanade.tachiyomi.network.POST
 import eu.kanade.tachiyomi.source.model.FilterList
@@ -31,16 +30,14 @@ import java.util.concurrent.TimeUnit
 
 abstract class MangasProject(
     override val name: String,
-    override val baseUrl: String
+    override val baseUrl: String,
+    override val lang: String
 ) : HttpSource() {
-
-    override val lang = "pt-BR"
 
     override val supportsLatest = true
 
     // Sometimes the site is slow.
     override val client: OkHttpClient = network.cloudflareClient.newBuilder()
-        .addInterceptor(RateLimitInterceptor(5, 1, TimeUnit.SECONDS))
         .connectTimeout(1, TimeUnit.MINUTES)
         .readTimeout(1, TimeUnit.MINUTES)
         .writeTimeout(1, TimeUnit.MINUTES)
@@ -235,7 +232,7 @@ abstract class MangasProject(
                     (if (chapterName == "") "" else " - $chapterName")
                 date_upload = obj["date_created"].string.substringBefore("T").toDate()
                 scanlator = release["scanlators"]!!.array
-                    .map { scanObj -> scanObj.obj["name"].string }
+                    .mapNotNull { scanObj -> scanObj.obj["name"].string.ifEmpty { null } }
                     .sorted()
                     .joinToString()
                 url = release["link"].string
@@ -279,7 +276,7 @@ abstract class MangasProject(
             .mapIndexed { i, obj -> Page(i, chapterUrl, obj.string) }
     }
 
-    protected open fun getChapterUrl(response: Response): String {
+    open fun getChapterUrl(response: Response): String {
         return response.request().url().toString()
     }
 
@@ -302,7 +299,13 @@ abstract class MangasProject(
         return GET(page.imageUrl!!, newHeaders)
     }
 
-    private fun Response.asJsonObject(): JsonObject = JSON_PARSER.parse(body()!!.string()).obj
+    private fun Response.asJsonObject(): JsonObject {
+        if (!isSuccessful) {
+            throw Exception("HTTP error ${code()}")
+        }
+
+        return JSON_PARSER.parse(body()!!.string()).obj
+    }
 
     private fun String.toDate(): Long {
         return try {
@@ -318,7 +321,7 @@ abstract class MangasProject(
         private const val ACCEPT_JSON = "application/json, text/javascript, */*; q=0.01"
         private const val ACCEPT_LANGUAGE = "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7,es;q=0.6,gl;q=0.5"
         private const val USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " +
-            "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.150 Safari/537.36"
+            "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.114 Safari/537.36"
 
         private val JSON_PARSER by lazy { JsonParser() }
 
