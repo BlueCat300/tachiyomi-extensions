@@ -5,13 +5,14 @@ import eu.kanade.tachiyomi.network.GET
 import eu.kanade.tachiyomi.network.asObservableSuccess
 import eu.kanade.tachiyomi.source.model.Filter
 import eu.kanade.tachiyomi.source.model.FilterList
+import eu.kanade.tachiyomi.source.model.MangasPage
 import eu.kanade.tachiyomi.source.model.Page
 import eu.kanade.tachiyomi.source.model.SChapter
 import eu.kanade.tachiyomi.source.model.SManga
 import eu.kanade.tachiyomi.source.online.ParsedHttpSource
 import eu.kanade.tachiyomi.util.asJsoup
 import okhttp3.Headers
-import okhttp3.HttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
@@ -68,7 +69,7 @@ class Readmanga : ParsedHttpSource() {
     override fun latestUpdatesNextPageSelector() = "a.nextLink"
 
     override fun searchMangaRequest(page: Int, query: String, filters: FilterList): Request {
-        var url = HttpUrl.parse("$baseUrl/search/advanced")!!.newBuilder()
+        var url = "$baseUrl/search/advanced".toHttpUrlOrNull()!!.newBuilder()
         (if (filters.isEmpty()) getFilterList() else filters).forEach { filter ->
             when (filter) {
                 is GenreList -> filter.state.forEach { genre ->
@@ -98,10 +99,10 @@ class Readmanga : ParsedHttpSource() {
                 }
                 is OrderBy -> {
                     if (filter.state == 0) {
-                        url = HttpUrl.parse("$baseUrl/search/advanced")!!.newBuilder()
+                        url = "$baseUrl/search/advanced".toHttpUrlOrNull()!!.newBuilder()
                     } else {
                         val ord = arrayOf("not", "name", "rate", "popularity", "votes", "created", "updated")[filter.state]
-                        url = HttpUrl.parse("$baseUrl/list?sortType=$ord")!!.newBuilder()
+                        url = "$baseUrl/list?sortType=$ord".toHttpUrlOrNull()!!.newBuilder()
                         return GET(url.toString(), headers)
                     }
                 }
@@ -134,10 +135,15 @@ class Readmanga : ParsedHttpSource() {
         if (authorElement == null) {
             authorElement = infoElement.select("span.elem_screenwriter").first()?.text()
         }
+        manga.title = infoElement.select("h1.names .name").text()
         manga.author = authorElement
         manga.artist = infoElement.select("span.elem_illustrator").first()?.text()
         manga.genre = infoElement.select("span.elem_genre").text().split(",").plusElement(category).joinToString { it.trim() }
-        manga.description = infoElement.select("div.manga-description").text()
+        var altName = ""
+        if (infoElement.select(".another-names").isNotEmpty()) {
+            altName = "Альтернативные названия:\n" + infoElement.select(".another-names").text() + "\n\n"
+        }
+        manga.description = altName + infoElement.select("div.manga-description").text()
         manga.status = parseStatus(infoElement.html())
         manga.thumbnail_url = infoElement.select("img").attr("data-full")
         return manga
@@ -231,7 +237,7 @@ class Readmanga : ParsedHttpSource() {
     }
 
     override fun pageListParse(response: Response): List<Page> {
-        val html = response.body()!!.string()
+        val html = response.body!!.string()
         val beginIndex = html.indexOf("rm_h.init( [")
         val endIndex = html.indexOf(");", beginIndex)
         val trimmedHtml = html.substring(beginIndex, endIndex)
@@ -272,8 +278,35 @@ class Readmanga : ParsedHttpSource() {
         return GET(page.imageUrl!!, imgHeader)
     }
 
+    private fun searchMangaByIdRequest(id: String): Request {
+        return GET("$baseUrl/$id", headers)
+    }
+
+    override fun fetchSearchManga(page: Int, query: String, filters: FilterList): Observable<MangasPage> {
+        return if (query.startsWith(PREFIX_SLUG_SEARCH)) {
+            val realQuery = query.removePrefix(PREFIX_SLUG_SEARCH)
+            client.newCall(searchMangaByIdRequest(realQuery))
+                .asObservableSuccess()
+                .map { response ->
+                    val details = mangaDetailsParse(response)
+                    details.url = "/$realQuery"
+                    MangasPage(listOf(details), false)
+                }
+        } else {
+            client.newCall(searchMangaRequest(page, query, filters))
+                .asObservableSuccess()
+                .map { response ->
+                    searchMangaParse(response)
+                }
+        }
+    }
+
+    companion object {
+        const val PREFIX_SLUG_SEARCH = "slug:"
+    }
+
     private class OrderBy : Filter.Select<String>(
-        "Сортировать\n(отдельно от фильтров)",
+        "Сортировать",
         arrayOf("Без(фильтры)", "По алфавиту", "По популярности", "Популярно сейчас", "По рейтингу", "Новинки", "По дате обновления")
     )
 
