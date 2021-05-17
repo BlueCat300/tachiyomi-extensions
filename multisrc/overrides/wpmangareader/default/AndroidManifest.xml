@@ -4,7 +4,7 @@
 
     <application>
         <activity
-            android:name=".en.homeheroscans.HomeHeroScansUrlActivity"
+            android:name="eu.kanade.tachiyomi.multisrc.wpmangareader.WPMangaReaderUrlActivity"
             android:excludeFromRecents="true"
             android:theme="@android:style/Theme.NoDisplay">
             <intent-filter>
@@ -13,9 +13,9 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data
-                    android:host="hhs.vercel.app"
-                    android:pathPattern="/chapter"
-                    android:scheme="https" />
+                    android:host="${SOURCEHOST}"
+                    android:pathPattern="/.*/..*"
+                    android:scheme="${SOURCESCHEME}" />
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
@@ -23,9 +23,9 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data
-                    android:host="hhs.vercel.app"
-                    android:pathPattern="/series"
-                    android:scheme="https" />
+                    android:host="${SOURCEHOST}"
+                    android:pathPattern="/..*"
+                    android:scheme="${SOURCESCHEME}" />
             </intent-filter>
         </activity>
     </application>

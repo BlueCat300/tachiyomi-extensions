@@ -9,7 +9,7 @@ class WPMangaReaderGenerator : ThemeSourceGenerator {
 
     override val themeClass = "WPMangaReader"
 
-    override val baseVersionCode: Int = 5
+    override val baseVersionCode: Int = 6
 
     override val sources = listOf(
 
@@ -25,7 +25,9 @@ class WPMangaReaderGenerator : ThemeSourceGenerator {
             SingleLang("PMScans", "https://reader.pmscans.com", "en"),
             SingleLang("Skull Scans", "https://www.skullscans.com", "en"),
             SingleLang("Luminous Scans", "https://www.luminousscans.com", "en"),
-            SingleLang("GS Nation", "https://gs-nation.fr", "fr", overrideVersionCode = 1)
+            SingleLang("GS Nation", "https://gs-nation.fr", "fr", overrideVersionCode = 1),
+            SingleLang("YugenMangas", "https://yugenmangas.com", "es"),
+            SingleLang("DragonTranslation", "https://dragontranslation.com", "es", isNsfw = true)
         )
 
     companion object {
